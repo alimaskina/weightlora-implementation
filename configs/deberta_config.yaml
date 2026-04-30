@@ -1,0 +1,57 @@
+# DeBERTaV3 Configuration for WeightLoRA
+# Based on microsoft/deberta-v3-base model
+
+model:
+  name: "microsoft/deberta-v3-base"
+  num_labels: 3  # For MNLI, SST-2, CoLA, QQP, QNLI, RTE, MRPC
+  max_length: 128
+  num_attention_heads: 12
+  hidden_size: 768
+  num_hidden_layers: 12
+  intermediate_size: 3072
+  dropout: 0.1
+
+weightlora:
+  rank: 8
+  alpha: 32.0
+  dropout: 0.05
+  K: 10
+  T: 200
+  target_modules:
+    - "attention.q_proj"
+    - "attention.k_proj"
+    - "attention.v_proj"
+    - "attention.out_proj"
+    - "attention.q_attn"
+    - "attention.k_attn"
+    - "attention.v_attn"
+    - "attention.o_attn"
+    - "attention.q_proj_layer"
+    - "attention.k_proj_layer"
+    - "attention.v_proj_layer"
+    - "attention.out_proj_layer"
+
+training:
+  learning_rate: 0.0003
+  num_epochs: 10
+  batch_size: 32
+  warmup_ratio: 0.06
+  weight_decay: 0.01
+  gradient_accumulation_steps: 1
+
+memory:
+  full_lora_params: 442000
+  weightlora_k5_params: 61500
+  weightlora_k10_params: 123000
+  reduction_target: 0.86
+
+glue:
+  tasks:
+    - mnli
+    - sst2
+    - cola
+    - qqp
+    - qnli
+    - rte
+    - mrpc
+    - sts-b

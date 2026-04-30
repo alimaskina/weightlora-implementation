@@ -1,0 +1,59 @@
+# BART Large Configuration for WeightLoRA
+# Based on paper specifications for summarization tasks (XSum, CNN/DailyMail)
+
+model:
+  name: "facebook/bart-large"
+  num_labels: 1  # For sequence-to-sequence tasks
+  vocab_size: 50265
+  max_position_embeddings: 1024
+  d_model: 1024
+  encoder_layers: 12
+  decoder_layers: 12
+  attention_heads: 16
+  ff_dim: 4096
+  activation_fn: "gelu"
+
+# WeightLoRA specific settings
+weightlora:
+  rank: 8
+  alpha: 32.0
+  dropout: 0.1
+  K: 10  # Keep top-10 adapters after T steps
+  T: 200  # Steps before adapter disconnection
+
+# Target modules for LoRA adaptation (BART encoder/decoder attention layers)
+target_modules:
+  - encoder.layers.{0-11}.self_attn.q_proj
+  - encoder.layers.{0-11}.self_attn.k_proj
+  - encoder.layers.{0-11}.self_attn.v_proj
+  - encoder.layers.{0-11}.self_attn.out_proj
+  - decoder.layers.{0-11}.self_attn.q_proj
+  - decoder.layers.{0-11}.self_attn.k_proj
+  - decoder.layers.{0-11}.self_attn.v_proj
+  - decoder.layers.{0-11}.self_attn.out_proj
+  - decoder.layers.{0-11}.fc1
+  - decoder.layers.{0-11}.fc2
+
+# Training hyperparameters
+training:
+  learning_rate: 0.0003
+  num_epochs: 10
+  batch_size: 16
+  warmup_steps: 100
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+
+# Evaluation settings
+evaluation:
+  max_length: 512
+  min_length: 10
+  do_sample: false
+  temperature: 1.0
+  top_k: 50
+  top_p: 1.0
+
+# Memory targets (for verification)
+memory:
+  full_lora_params: 442000  # ~0.24% of 184M params
+  weightlora_k5_params: 61500  # 86% reduction
+  weightlora_k10_params: 123000  # 72% reduction

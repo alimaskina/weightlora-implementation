@@ -1,0 +1,59 @@
+# Llama-3-7B Configuration for WeightLoRA
+# Model-specific settings for causal language modeling tasks
+
+model:
+  name: "meta-llama/Llama-3-7b"
+  num_labels: 1  # Causal LM (next token prediction)
+  hidden_size: 4096
+  num_hidden_layers: 32
+  intermediate_size: 11008
+  num_attention_heads: 32
+  max_position_embeddings: 8192
+
+weightlora:
+  rank: 8
+  alpha: 32.0
+  K: 10
+  T: 200
+  dropout: 0.05
+
+training:
+  learning_rate: 0.0003
+  batch_size: 16
+  num_epochs: 10
+  warmup_ratio: 0.06
+  weight_decay: 0.01
+  gradient_accumulation_steps: 4
+
+memory:
+  full_lora_params: 6400000  # ~6.4M params for full LoRA on Llama-3-7B
+  weightlora_k5_params: 90000  # ~90K params at K=5
+  weightlora_k10_params: 180000  # ~180K params at K=10
+  reduction_target: 0.86  # 86% parameter reduction target
+
+target_modules:
+  - "model.layers.{0-31}.self_attn.q_proj"
+  - "model.layers.{0-31}.self_attn.k_proj"
+  - "model.layers.{0-31}.self_attn.v_proj"
+  - "model.layers.{0-31}.self_attn.o_proj"
+  - "model.layers.{0-31}.mlp.gate_proj"
+  - "model.layers.{0-31}.mlp.up_proj"
+  - "model.layers.{0-31}.mlp.down_proj"
+
+# Tasks supported with Llama-3-7B
+tasks:
+  - name: "squad_v2"
+    type: "question_answering"
+    max_length: 512
+  - name: "xsum"
+    type: "summarization"
+    max_length: 512
+  - name: "cnn_dailymail"
+    type: "summarization"
+    max_length: 512
+
+# Evaluation settings
+evaluation:
+  metric: "rouge1"  # ROUGE-1 for summarization tasks
+  batch_size: 8
+  max_length: 512
